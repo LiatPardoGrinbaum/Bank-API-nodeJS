@@ -90,3 +90,5 @@ Account objects from accounts json:
   {  
   "transfer": _enter number_  
   }
+
+  &copy; Liat Pardo Grinbaum
