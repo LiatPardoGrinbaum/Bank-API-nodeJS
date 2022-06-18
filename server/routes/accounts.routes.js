@@ -121,6 +121,7 @@ routeAccount.put("/credit/:userId/:accountId", (req, res) => {
   }
 });
 
+//withdraw money from the user (can withdraw money until the cash and credit run out) by user and account ids:
 routeAccount.put("/withdraw/:userId/:accountId", (req, res) => {
   try {
     let accounts = loadAccounts();
