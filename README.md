@@ -33,11 +33,11 @@ Account objects from accounts json:
   https://bank-api-liat.herokuapp.com/api/users
 
   In Postman:  
-   {  
-   "userId": _enter number_,  
-   "name": "_enter string_",  
-   "accounts": _enter array with numbers_  
-   }
+  {  
+  "userId": _enter number_,  
+  "name": "_enter string_",  
+  "accounts": _enter array with numbers_  
+  }
 
 - Get all Accounts data, GET method:  
   https://bank-api-liat.herokuapp.com/api/accounts
@@ -49,44 +49,44 @@ Account objects from accounts json:
 - Define an account of a user (add it to the accounts json file, matched by the accounts id's in the user object and only if they're not defined yet), POST method:  
   https://bank-api-liat.herokuapp.com/api/accounts/:userId
 
-In Postman:  
-{  
- accountId: _enter string_,  
- cash: _enter number_,  
- credit: _enter number_,  
- isActive: _enter boolean-true or false_,  
-}
+  In Postman:  
+  {  
+  accountId: _enter string_,  
+  cash: _enter number_,  
+  credit: _enter number_,  
+  isActive: _enter boolean-true or false_,  
+  }
 
 - Deposit cash to a user by user id and account id, PUT method:  
   https://bank-api-liat.herokuapp.com/api/deposit/:userId/:accountId
 
-In Postman:  
-{  
- "newCash": _enter number_  
-}
+  In Postman:  
+  {  
+  "newCash": _enter number_  
+  }
 
 - Update credit by user id and account id, PUT method:  
   https://bank-api-liat.herokuapp.com/api/credit/:userId/:accountId
 
-In Postman:  
-{  
- "newCredit": _enter number_  
-}
+  In Postman:  
+  {  
+  "newCredit": _enter number_  
+  }
 
 - Withdraw money from the user by user id and account id.  
   Can withdraw money until the cash and credit run out. PUT method:  
    https://bank-api-liat.herokuapp.com/api/withdraw/:userId/:accountId
 
-In Postman:  
-{  
- "withdraw": _enter number_  
-}
+  In Postman:  
+  {  
+  "withdraw": _enter number_  
+  }
 
 - Transfer money from one user to another, users' id's and accounts' id's. Can transfer money until the cash and credit run out. User 1 tranfers to user 2.  
   PUT method:  
   https://bank-api-liat.herokuapp.com/api/transfer/:userId1/:accountId1/:userId2/:accountId2
 
-In Postman:  
-{  
- "transfer": _enter number_  
-}
+  In Postman:  
+  {  
+  "transfer": _enter number_  
+  }
