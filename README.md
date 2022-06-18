@@ -1,7 +1,7 @@
 # Bank-API-nodeJS
 
 This project was taken as a part of my participance in Appleseed academy fullstack bootcamp.  
-In this project I built a bank API with nodeJS, express, fs. All methods testd with Postman.  
+In this project I built a bank API with nodeJS, express, fs. All methods were tested with Postman.  
 The bank manager has access to the users of the bank and can perform many operations as described in the following documentation.
 
 ## API docomuntation
@@ -12,11 +12,11 @@ https://bank-api-liat.herokuapp.com/api
 There are 2 main jsons, one for the users and one for the accounts.  
 Each user hold an array for all his/her accounts.  
 User object from the users json:  
-![user](./images/user.jpg)
+![](/images/user.jpg)
 
 The accounts json contain all the users' accounts.  
 Account objects from accounts json:  
-![account](./iamges/accounts.jpg)
+![](/iamges/accounts.jpg)
 
 - Get all users data, method: GET :  
    https://bank-api-liat.herokuapp.com/api/users
