@@ -37,10 +37,12 @@ userRoute.post("/users", (req, res) => {
   try {
     const users = loadUsers();
     const newUser = {
-      userID: req.body.userId || "",
+      userId: req.body.userId || "",
       name: req.body.name || "",
       accounts: req.body.accounts || [],
     };
+    const userToCheck = users.find((user) => user.userId === newUser.userId);
+    if (userToCheck) throw new Error("User is already exit!");
     users.push(newUser);
     saveNewUser(users);
     res.status(200).send(newUser);

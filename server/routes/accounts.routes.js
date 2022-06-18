@@ -18,66 +18,29 @@ routeAccount.get("/accounts", (req, res) => {
 //get specific account data by user id and account id
 routeAccount.get("/accounts/:userId/:accountId", (req, res) => {
   try {
-    const accounts = loadAccounts();
-
+    let accounts = loadAccounts();
     const userId = Number(req.params.userId); //req.params.userId typeof is a string
     const accountId = req.params.accountId; //string
-
-    //check match between account and user ids:
-    checkForUserAccountMatch(userId, accountId);
-
-    const accountInfo = accounts.find((account) => {
-      return account.accountId === accountId;
-    });
-    if (accountInfo === undefined) throw new Error("Account not found!");
+    //check match between account and user ids and validation of input:
+    const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
     res.status(200).send(accountInfo);
   } catch (e) {
     res.status(400).send(e.message);
   }
 });
 
-//deposit cash to a user by userId and accountId and amount:
-routeAccount.put("/accounts/:userId/:accountId", (req, res) => {
-  try {
-    let accounts = loadAccounts();
-    const deposit = req.body.newCash; //req.body.cash?
-    console.log(deposit);
-    const userId = Number(req.params.userId); //req.params.userId typeof is a string
-    const accountId = req.params.accountId; //string
-    //check match between account and user ids:
-    checkForUserAccountMatch(userId, accountId);
-    let accountInfo = accounts.find((account) => {
-      return account.accountId === accountId;
-    });
-    console.log(accountInfo);
-    if (accountInfo === undefined) throw new Error("Account not found!");
-    const newCashAmount = accountInfo.cash + deposit;
-
-    let updatedAccounts = accounts.map((account) => {
-      if (account.accountId === accountId) {
-        console.log(account);
-        const updatedCashAccount = { ...accountInfo, cash: newCashAmount };
-        console.log(updatedCashAccount);
-        return updatedCashAccount;
-      } else {
-        return account;
-      }
-    });
-    res.status(200).send(updatedAccounts);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-
-//add new user
-// routeAccount.post("/users", (req, res) => {
+//add new account of specific user:
+// routeAccount.post("/accounts", (req, res) => {
 //   try {
-//     const users = loadUsers();
-//     const newUser = {
-//       userID: req.body.userId || "",
-//       name: req.body.name || "",
-//       accounts: req.body.accounts || [],
+//     let accounts = loadAccounts();
+//     const newAccount = {
+//       accountId: req.body.userId || "",
+//       cash: req.body.cash || "",
+//       credit: req.body.credit || [],
+//       isActive: req.body.isActive
 //     };
+//     const userToCheck = users.find((user) => user.userId === newUser.userId);
+//     if (userToCheck) throw new Error("User is already exit!");
 //     users.push(newUser);
 //     saveNewUser(users);
 //     res.status(200).send(newUser);
@@ -85,6 +48,115 @@ routeAccount.put("/accounts/:userId/:accountId", (req, res) => {
 //     res.status(400).send(e.message);
 //   }
 // });
+
+//deposit cash to a user by userId and accountId and amount:
+routeAccount.put("/deposit/:userId/:accountId", (req, res) => {
+  try {
+    let accounts = loadAccounts();
+    const newCash = req.body.newCash; //req.body.cash?
+    const userId = Number(req.params.userId); //req.params.userId typeof is a string
+    const accountId = req.params.accountId; //string
+    //check match between account and user ids:
+    const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    const newCashAmount = accountInfo.cash + newCash;
+    let updatedAccounts = accounts.map((account) => {
+      if (account.accountId === accountId) {
+        const updatedCashAccount = { ...accountInfo, cash: newCashAmount };
+        return updatedCashAccount;
+      } else {
+        return account;
+      }
+    });
+    saveNewAccount(updatedAccounts);
+    res.status(200).send(updatedAccounts);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+//update credit by userId and accountId (only positive numbers)
+routeAccount.put("/credit/:userId/:accountId", (req, res) => {
+  try {
+    let accounts = loadAccounts();
+    const newCredit = req.body.newCredit;
+    const userId = Number(req.params.userId); //req.params.userId typeof is a string
+    const accountId = req.params.accountId; //string
+    //check match between account and user ids:
+    const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    let updatedAccounts = accounts.map((account) => {
+      if (account.accountId === accountId) {
+        const updatedCreditAccount = { ...accountInfo, credit: newCredit };
+        return updatedCreditAccount;
+      } else {
+        return account;
+      }
+    });
+    saveNewAccount(updatedAccounts);
+    res.status(200).send(updatedAccounts);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+routeAccount.put("/withdraw/:userId/:accountId", (req, res) => {
+  try {
+    let accounts = loadAccounts();
+    const withdraw = req.body.withdraw;
+    const userId = Number(req.params.userId); //req.params.userId typeof is a string
+    const accountId = req.params.accountId; //string
+    //check match between account and user ids:
+    const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    //withdraw conditions:
+    const { newCashAmount, newCredit } = withdrawValid(accountInfo, withdraw);
+    let updatedAccounts = accounts.map((account) => {
+      if (account.accountId === accountId) {
+        const updatedCashAccount = { ...accountInfo, cash: newCashAmount, credit: newCredit };
+        return updatedCashAccount;
+      } else {
+        return account;
+      }
+    });
+    saveNewAccount(updatedAccounts);
+    res.status(200).send(updatedAccounts);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+//transfering money from user1 with account1 to user2 with account2 until cash and credit run out:
+routeAccount.put("/transfer/:userId1/:accountId1/:userId2/:accountId2", (req, res) => {
+  try {
+    let accounts = loadAccounts();
+    const transferAmount = req.body.transfer;
+    const userId1 = Number(req.params.userId1); //req.params.userId typeof is a string
+    const accountId1 = req.params.accountId1; //string
+    const userId2 = Number(req.params.userId2); //req.params.userId typeof is a string
+    const accountId2 = req.params.accountId2; //string
+
+    //check match between account and user ids:
+    const accountInfo1 = checkForUserAccountValidation(accounts, userId1, accountId1);
+    const accountInfo2 = checkForUserAccountValidation(accounts, userId2, accountId2);
+    //check if user 1 has enough money to transfer
+    const { newCashAmount, newCredit } = withdrawValid(accountInfo1, transferAmount);
+    console.log(newCashAmount);
+    const newCashAmount2 = transferAmount + accountInfo2.cash;
+    let updatedAccounts = accounts.map((account) => {
+      if (account.accountId === accountId1) {
+        const updatedCashAccount1 = { ...accountInfo1, cash: newCashAmount, credit: newCredit };
+        return updatedCashAccount1;
+      } else if (account.accountId === accountId2) {
+        const updatedCashAccount2 = { ...accountInfo2, cash: newCashAmount2 };
+        return updatedCashAccount2;
+      } else {
+        return account;
+      }
+    });
+    saveNewAccount(updatedAccounts);
+    res.status(200).send(updatedAccounts);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
 
 const loadAccounts = () => {
   try {
@@ -97,24 +169,54 @@ const loadAccounts = () => {
   }
 };
 
-const checkForUserAccountMatch = (userId, accountId) => {
+const checkForUserAccountValidation = (accounts, userId, accountId) => {
   const users = loadUsers();
   const userToCheck = users.find((user) => user.userId === userId);
   if (userToCheck === undefined) {
-    throw new Error("User not found!");
+    throw new Error(`User ${userId} not found!`);
   } else {
     const accountToCheck = userToCheck.accounts.find((account) => {
       return account === accountId;
     });
-    if (accountToCheck === undefined) throw new Error("Account not belong to that user!");
+    if (accountToCheck === undefined) throw new Error(`Account  ${accountId} is not belong to that user!`);
+  }
+  const accountInfo = accounts.find((account) => {
+    return account.accountId === accountId;
+  });
+  //in the case the account belongs to the user but not defined in the array of accounts yet:
+  if (accountInfo === undefined) {
+    throw new Error(`Account ${accountId} not found!`);
+    //in the case the account is not active:
+  } else if (accountInfo.isActive === false) {
+    throw new Error(`Account  ${accountInfo.accountId} is not active!`);
+  } else {
+    return accountInfo;
   }
 };
 
-const saveNewUser = (users) => {
+const withdrawValid = (accountInfo, withdraw) => {
+  let newCredit = accountInfo.credit;
+  let newCashAmount = accountInfo.cash;
+  if (withdraw === accountInfo.cash + accountInfo.credit) {
+    newCredit = 0;
+    newCashAmount = 0;
+  } else if (withdraw > accountInfo.cash + accountInfo.credit) {
+    throw new Error("Not enough money in both cash and credit! Try to withdraw less money.");
+  } else if (withdraw <= accountInfo.cash) {
+    newCashAmount = accountInfo.cash - withdraw;
+  } else {
+    //if withdraw is bigger the cash and smaller then cash+credit
+    newCashAmount = 0;
+    newCredit = accountInfo.credit - (withdraw - accountInfo.cash);
+  }
+  return { newCashAmount, newCredit };
+};
+
+const saveNewAccount = (accounts) => {
   try {
-    const usersJson = JSON.stringify(users);
-    console.log("usersJson", usersJson);
-    fs.writeFileSync(usersPath, usersJson);
+    const accountsJson = JSON.stringify(accounts);
+
+    fs.writeFileSync(accountsPath, accountsJson);
   } catch (e) {
     console.log(e);
   }
