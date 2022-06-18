@@ -18,7 +18,7 @@ routeAccount.get("/accounts", (req, res) => {
 //get specific account data by user id and account id
 routeAccount.get("/accounts/:userId/:accountId", (req, res) => {
   try {
-    let accounts = loadAccounts();
+    const accounts = loadAccounts();
     const userId = Number(req.params.userId); //req.params.userId typeof is a string
     const accountId = req.params.accountId; //string
     //check match between account and user ids and validation of input:
@@ -29,25 +29,41 @@ routeAccount.get("/accounts/:userId/:accountId", (req, res) => {
   }
 });
 
-//add new account of specific user:
-// routeAccount.post("/accounts", (req, res) => {
-//   try {
-//     let accounts = loadAccounts();
-//     const newAccount = {
-//       accountId: req.body.userId || "",
-//       cash: req.body.cash || "",
-//       credit: req.body.credit || [],
-//       isActive: req.body.isActive
-//     };
-//     const userToCheck = users.find((user) => user.userId === newUser.userId);
-//     if (userToCheck) throw new Error("User is already exit!");
-//     users.push(newUser);
-//     saveNewUser(users);
-//     res.status(200).send(newUser);
-//   } catch (e) {
-//     res.status(400).send(e.message);
-//   }
-// });
+//add new account of specific user only if the account defined in the user object:
+routeAccount.post("/accounts/:userId", (req, res) => {
+  try {
+    let accounts = loadAccounts();
+    const id = Number(req.params.userId);
+    const users = loadUsers();
+    const newAccount = {
+      accountId: req.body.accountId || "",
+      cash: req.body.cash || 0,
+      credit: req.body.credit || 0,
+      isActive: req.body.isActive || true,
+    };
+    //get the specifit user object
+    const userToCheck = users.find((user) => {
+      return user.userId === id;
+    });
+    if (userToCheck === undefined) throw new Error("User is not found!");
+    //check if user has the account id in his array
+    const isAccountExistInUser = userToCheck.accounts.find((accountId) => accountId === newAccount.accountId);
+
+    //check if account is exist in the account object json, beacaue if it exist I don't want to create another one
+    const isAccountExistInAccounts = accounts.find((account) => account.accountId === newAccount.accountId);
+    if (isAccountExistInUser && !isAccountExistInAccounts) {
+      accounts.push(newAccount);
+    } else if (!isAccountExistInUser) {
+      throw new Error("Account is not belong to that user.");
+    } else if (isAccountExistInAccounts) {
+      throw new Error("Account is already defined.");
+    }
+    saveNewAccount(accounts);
+    res.status(200).send(newAccount);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
 
 //deposit cash to a user by userId and accountId and amount:
 routeAccount.put("/deposit/:userId/:accountId", (req, res) => {
@@ -58,6 +74,10 @@ routeAccount.put("/deposit/:userId/:accountId", (req, res) => {
     const accountId = req.params.accountId; //string
     //check match between account and user ids:
     const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    //in the case the account is not active:
+    if (accountInfo.isActive === false) {
+      throw new Error(`Account  ${accountInfo.accountId} is not active!`);
+    }
     const newCashAmount = accountInfo.cash + newCash;
     let updatedAccounts = accounts.map((account) => {
       if (account.accountId === accountId) {
@@ -83,6 +103,9 @@ routeAccount.put("/credit/:userId/:accountId", (req, res) => {
     const accountId = req.params.accountId; //string
     //check match between account and user ids:
     const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    if (accountInfo.isActive === false) {
+      throw new Error(`Account  ${accountInfo.accountId} is not active!`);
+    }
     let updatedAccounts = accounts.map((account) => {
       if (account.accountId === accountId) {
         const updatedCreditAccount = { ...accountInfo, credit: newCredit };
@@ -106,6 +129,9 @@ routeAccount.put("/withdraw/:userId/:accountId", (req, res) => {
     const accountId = req.params.accountId; //string
     //check match between account and user ids:
     const accountInfo = checkForUserAccountValidation(accounts, userId, accountId);
+    if (accountInfo.isActive === false) {
+      throw new Error(`Account  ${accountInfo.accountId} is not active!`);
+    }
     //withdraw conditions:
     const { newCashAmount, newCredit } = withdrawValid(accountInfo, withdraw);
     let updatedAccounts = accounts.map((account) => {
@@ -136,6 +162,9 @@ routeAccount.put("/transfer/:userId1/:accountId1/:userId2/:accountId2", (req, re
     //check match between account and user ids:
     const accountInfo1 = checkForUserAccountValidation(accounts, userId1, accountId1);
     const accountInfo2 = checkForUserAccountValidation(accounts, userId2, accountId2);
+    if (accountInfo1.isActive === false || accountInfo2.isActive === false) {
+      throw new Error(`One of the accounts is not active!`);
+    }
     //check if user 1 has enough money to transfer
     const { newCashAmount, newCredit } = withdrawValid(accountInfo1, transferAmount);
     console.log(newCashAmount);
@@ -186,9 +215,6 @@ const checkForUserAccountValidation = (accounts, userId, accountId) => {
   //in the case the account belongs to the user but not defined in the array of accounts yet:
   if (accountInfo === undefined) {
     throw new Error(`Account ${accountId} not found!`);
-    //in the case the account is not active:
-  } else if (accountInfo.isActive === false) {
-    throw new Error(`Account  ${accountInfo.accountId} is not active!`);
   } else {
     return accountInfo;
   }
