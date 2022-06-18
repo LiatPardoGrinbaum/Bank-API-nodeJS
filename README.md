@@ -5,7 +5,7 @@ In this project I built a bank API with nodeJS, express, fs. All methods were te
 All routes methods have error handling for different cases.  
 The bank manager has access to the users of the bank and can perform many operations as described in the following documentation.
 
-## API docomuntation
+## API documentation
 
 Bank API , base endpoint:  
 https://bank-api-liat.herokuapp.com/api
