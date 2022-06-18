@@ -12,11 +12,11 @@ https://bank-api-liat.herokuapp.com/api
 There are 2 main jsons, one for the users and one for the accounts.  
 Each user hold an array for all his/her accounts.  
 User object from the users json:  
-![](/images/user.jpg)
+![user](/images/user.JPG)
 
 The accounts json contain all the users' accounts.  
 Account objects from accounts json:  
-![](/iamges/accounts.jpg)
+![accounts](/images/accounts.JPG)
 
 - Get all users data, method: GET :  
    https://bank-api-liat.herokuapp.com/api/users
